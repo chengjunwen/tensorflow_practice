@@ -2,18 +2,8 @@ import os
 import numpy as np
 import math
 import tensorflow as tf
-import tensorflow.examples.tutorials.mnist.input_data as input_data
 import matplotlib.pyplot as plt
-
-def _get_data():
-    mnist = input_data.read_data_sets('MNIST_data',one_hot=True)
-    return mnist
-def get_noise_image(input, noise_ratio):
-### denoise
-    noise_image = np.random.uniform(-0.5,0.5,
-                        (input.get_shape())).astype('float32')
-    return noise_ratio*noise_image + (1-noise_ratio)*input
-    
+from utils import *
     
 def autoencoder(input,numOuts=[784,256,64],noise_ratio=0.5):
     
@@ -47,20 +37,8 @@ def autoencoder(input,numOuts=[784,256,64],noise_ratio=0.5):
 
     return (y,loss)
 
-def show_img(test_data,test_y, mean_img,nimgs=10):
-    fig, axs = plt.subplots(2, 10, figsize=(10, 2))
-    for i in range(nimgs):
-        axs[0][i].imshow(
-            np.reshape(test_data[i, :], (28, 28)))
-        axs[1][i].imshow(
-            np.reshape([test_y[i, :] + mean_img], (28, 28)))
-
-    fig.show()
-    plt.draw()
-    plt.waitforbuttonpress()
-
 def train_mnist():
-    mnist = _get_data()
+    mnist = get_mnist_data()
     mean_img = np.mean(mnist.train.images, axis=0)
     batch_size = 64
     epochs = 2
@@ -85,4 +63,6 @@ def train_mnist():
     test_x = np.array([(img - mean_img) for img in test_data])
     test_y = sess.run(y,feed_dict={x:test_x})
     show_img(test_data, test_y,mean_img)
-train_mnist()
+
+if __name__ =='__main__':
+    train_mnist()
