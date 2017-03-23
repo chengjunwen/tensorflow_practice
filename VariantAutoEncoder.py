@@ -49,7 +49,7 @@ class VAEModel:
             shape=[n_in, n_out]
             w = tf.Variable(self.initWeight(shape))
             b = tf.Variable(tf.zeros([n_out]))
-            if(n_out==784):
+            if(l == len(numOuts)-1):
                 hidden= tf.nn.sigmoid(tf.matmul(current_h,w)+b)
             else:
                 hidden= tf.nn.relu(tf.matmul(current_h,w)+b)

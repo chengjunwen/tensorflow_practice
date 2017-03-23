@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from utils import *
     
 def autoencoder(input,numOuts=[784,256,64],noise_ratio=0.5):
-    
+    print(input.get_shape())    
     encoder =[]
     current_x = get_noise_image(input, noise_ratio)
 
@@ -34,6 +34,7 @@ def autoencoder(input,numOuts=[784,256,64],noise_ratio=0.5):
 
     y = current_h
     loss = tf.reduce_sum(tf.square(y-input))
+    print(loss.get_shape())
 
     return (y,loss)
 
@@ -45,6 +46,8 @@ def train_mnist():
     lr = 0.003
     x = tf.placeholder(tf.float32, shape=[batch_size, 784])
     y, loss =  autoencoder(x)
+    print("==========================")
+    print(loss)
     optimizer = tf.train.AdamOptimizer(lr).minimize(loss)
 
     sess = tf.Session()
@@ -55,7 +58,6 @@ def train_mnist():
             batch = mnist.train.next_batch(batch_size)[0]
             train_x = np.array([(img - mean_img) for img in batch])
             y_img,loss_y,_ = sess.run([y,loss,optimizer], feed_dict = {x:train_x})
-
         print("epoch: %d ,loss: %f" % (epoch,loss_y))
 
 ### test

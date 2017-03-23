@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import tensorflow.examples.tutorials.mnist.input_data as input_data
+import matplotlib
 import matplotlib.pyplot as plt
 
 def get_mnist_data():
