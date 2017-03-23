@@ -4,26 +4,32 @@ import numpy as np
 import tensorflow as tf
 from utils import *
 
+stdd=0.1
 class VAEModel:
 
     def __init__(self):
         pass
 
-    def encoder(self, input,numOuts=[256,64]):
+    def initWeight(self, shape):
+        high = np.sqrt(6.0/(shape[0]+shape[1]))
+        low = -1 * high
+        return tf.random_uniform(shape, minval=low, maxval=high, dtype=tf.float32)
+
+    def encoder(self, input,numOuts=[500,200,20]):
         current_x = input
     #        current_x = get_noise_image(input, 0.5)
         for l, n_out in enumerate(numOuts[:-1]):
             n_in = int(current_x.get_shape()[1])
             shape=[n_in, n_out]
-            w = tf.Variable(tf.truncated_normal( shape, stddev=0.001))
+            w = tf.Variable(self.initWeight(shape))
             b = tf.Variable(tf.zeros([n_out]))
             hidden= tf.nn.relu(tf.matmul(current_x,w)+b)
             current_x = hidden
         
         shape = [n_out, numOuts[-1]]
-        w_var = tf.Variable(tf.truncated_normal( shape, stddev = 0.001))
+        w_var = tf.Variable(self.initWeight(shape))
         b_var = tf.Variable(tf.zeros([numOuts[-1]]))
-        w_mean = tf.Variable(tf.truncated_normal( shape, stddev=0.001))
+        w_mean = tf.Variable(self.initWeight(shape))
         b_mean = tf.Variable(tf.zeros([numOuts[-1]]))
 
         z_var = tf.matmul(hidden,w_var) + b_var
@@ -32,19 +38,19 @@ class VAEModel:
 
     def sample_z(self, z_mean, z_var, std=1.0):
 
-        epsilon = tf.random_normal(z_var.get_shape(),mean=0, stddev=std)
+        epsilon = tf.random_normal(z_var.get_shape(),mean=0, stddev=stdd)
         z = tf.mul(tf.exp(0.5*z_var) , epsilon) + z_mean
         return z
 
-    def decoder(self, input,numOuts=[256,784]):
+    def decoder(self, input,numOuts=[200,500,784]):
         current_h = input
         for l, n_out in enumerate(numOuts):
             n_in = int(current_h.get_shape()[1])
             shape=[n_in, n_out]
-            w = tf.Variable(tf.truncated_normal( shape, stddev=0.001 ))
+            w = tf.Variable(self.initWeight(shape))
             b = tf.Variable(tf.zeros([n_out]))
-            if(l == (len(numOuts)-1)):
-                hidden= tf.matmul(current_h,w)+b
+            if(n_out==784):
+                hidden= tf.nn.sigmoid(tf.matmul(current_h,w)+b)
             else:
                 hidden= tf.nn.relu(tf.matmul(current_h,w)+b)
             current_h = hidden
@@ -54,7 +60,7 @@ class VAEModel:
         entropy = tf.nn.sigmoid_cross_entropy_with_logits(x,y) 
 #        entropy = tf.square(x-y)
         loss =  tf.reduce_sum(entropy,1)
-        kl_loss = -0.5*tf.reduce_mean(1+z_var - tf.square(z_mean)-tf.exp(z_var) ,1)
+        kl_loss = -0.5*tf.reduce_sum(1+z_var - tf.square(z_mean)-tf.exp(z_var) ,1)
         all_loss = tf.reduce_mean(loss + kl_loss)
         return all_loss
 
@@ -67,8 +73,8 @@ def train_VAE():
 
     mnist = get_mnist_data()
     mean_img = np.mean(mnist.train.images, axis=0)
-    batch_size = 64
-    epochs = 5
+    batch_size = 100
+    epochs = 10
     lr = 0.003
     x = tf.placeholder(tf.float32, shape=[batch_size, 784])
     print(x.get_shape())
@@ -77,8 +83,6 @@ def train_VAE():
     z = vae.sample_z(mean, var)
     y = vae.decoder(z)
     loss= vae.loss(x,y,mean,var)
-    print("=====")
-    print(loss)
     opt = vae.train(lr, loss)
 #    opt = tf.train.AdamOptimizer(lr).minimize(loss)
 
