@@ -23,7 +23,6 @@ def show_img(test_data,test_y, mean_img,nimgs=10):
             np.reshape([test_y[i, :] + mean_img], (28, 28)))
 
     fig.show()
-    plt.draw()
     plt.waitforbuttonpress()
 
 def show_img_square(test_data,test_y, mean_img,nimgs=10):
@@ -35,6 +34,5 @@ def show_img_square(test_data,test_y, mean_img,nimgs=10):
                 np.reshape([test_y[i, :,:,:] + mean_img], (28, 28)))
 
     fig.show()
-    plt.draw()
     plt.waitforbuttonpress()
 
